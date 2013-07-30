@@ -1,4 +1,4 @@
-Sublime Text 2 Harvey Tests
+harvey-sublime plugin
 =========================
 
 Features
@@ -21,5 +21,9 @@ Usage
 -----
 
  - Run single harvey test: `Command-Shift-R`
+
+Future
+------
+
  - Run all harvey tests from current file: `Command-Shift-T`
  - Run last harvey test(s): `Command-Shift-E`
