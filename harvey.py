@@ -2,7 +2,9 @@ import sublime
 import sublime_plugin
 import os
 
+
 class HarveyCommand(sublime_plugin.TextCommand):
+	
 	def load_config(self):
 		s = sublime.load_settings("Harvey.sublime-settings")
 		global THEME; THEME = s.get('theme')
