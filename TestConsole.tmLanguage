@@ -10,7 +10,7 @@
       <key>comment</key>
       <string>test pass</string>
       <key>match</key>
-      <string>(^|\s)\d+ (tests complete|assertions|examples?|passed)|(✓|0 failures\.|0 errors|0 skips)|(^\.+$)</string>
+      <string>(^|\s)\d+ (tests complete|passing|assertions|examples?|passed)|(✓|0 failures\.|0 errors|0 skips)|(^\.+$)</string>
       <key>name</key>
       <string>test.pass</string>
     </dict>

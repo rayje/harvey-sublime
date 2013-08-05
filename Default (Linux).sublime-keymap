@@ -1,3 +1,4 @@
 [
-  { "keys": ["ctrl+shift+r"], "command": "harvey" }
+  { "keys": ["ctrl+shift+r"], "command": "harvey_single_test" },
+  { "keys": ["ctrl+shift+o"], "command": "harvey_run_json" }
 ]
