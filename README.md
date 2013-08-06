@@ -39,7 +39,7 @@ There are a few settings available to customize the harvey-sublime plugin. For t
 Do **NOT** edit the default harvey-sublime settings. Your changes will be lost when the plugin is updated. ALWAYS edit the user harvey-sublime settings by selecting `Preferences->Package Settings->Harvey->Settings - User`. Note that individual settings you include in your user settings will _completely_ replace the corresponding default setting, so you must provide that setting in its entirety.
 
 ### Settings
-The plugin uses a default settings file to tell it 
+The following is a description of the settings that can be overridden in the settings file:
 
 * ***node*** - This is the location where the node executable lives. By default it expects the executable to be on the user's PATH. To configure the plugin to use another version of node.
 
