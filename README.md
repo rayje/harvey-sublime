@@ -36,7 +36,7 @@ Configuring
 -----------
 There are a few settings available to customize the harvey-sublime plugin. For the latest information on what settings are available, select the menu item `Preferences->Package Settings->Harvey->Settings - Default`.
 
-Do **NOT** edit the default harvey-sublime settings. Your changes will be lost when the plugin is updated. ALWAYS edit the user harvey-sublime settings by selecting `Preferences->Package Settings->SublimeLinter->Settings - User`. Note that individual settings you include in your user settings will _completely_ replace the corresponding default setting, so you must provide that setting in its entirety.
+Do **NOT** edit the default harvey-sublime settings. Your changes will be lost when the plugin is updated. ALWAYS edit the user harvey-sublime settings by selecting `Preferences->Package Settings->Harvey->Settings - User`. Note that individual settings you include in your user settings will _completely_ replace the corresponding default setting, so you must provide that setting in its entirety.
 
 ### Settings
 The plugin uses a default settings file to tell it 
