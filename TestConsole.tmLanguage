@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>TestConsole</string>
+  <key>patterns</key>
+  <array>
+    <dict>
+      <key>comment</key>
+      <string>test pass</string>
+      <key>match</key>
+      <string>(^|\s)\d+ (tests complete|assertions|examples?|passed)|(✓|0 failures\.|0 errors|0 skips)|(^\.+$)</string>
+      <key>name</key>
+      <string>test.pass</string>
+    </dict>
+    <dict>
+      <key>comment</key>
+      <string>test error</string>
+      <key>match</key>
+      <string>(E{1})\b|([1-9]\d* errors)|(\d+\) Error:|cucumber(\s\S*)|[1-9]\d* failed)|test_(\w*\S):</string>
+      <key>name</key>
+      <string>test.error</string>
+    </dict>
+    <dict>
+      <key>comment</key>
+      <string>test fail</string>
+      <key>match</key>
+      <string>[F]{1}\b|(\d+ failures\.?)|✖</string>
+      <key>name</key>
+      <string>test.fail</string>
+    </dict>
+
+
+    <!-- Print code or other non passing/failing/pending stuff in step -->
+    <dict>
+      <key>comment</key>
+      <string>test comment</string>
+      <key>match</key>
+      <string>(^\s{6}.+)</string>
+      <key>captures</key>
+      <dict>
+        <key>1</key>
+        <dict>
+          <key>name</key>
+          <string>test.skipped</string>
+        </dict>
+      </dict>      
+    </dict>
+    <!-- End Print code in step -->
+    
+    <dict>
+      <key>comment</key>
+      <string>dots painting</string>
+      <key>begin</key>
+      <string>Started</string>
+      <key>patterns</key>
+      <array>
+        <dict>
+          <key>match</key>
+          <string>\.+|passed</string>
+          <key>name</key>
+          <string>test.pass</string>
+        </dict>
+        <dict>
+          <key>match</key>
+          <string>E+</string>
+          <key>name</key>
+          <string>test.error</string>
+        </dict>
+        <dict>
+          <key>match</key>
+          <string>F+</string>
+          <key>name</key>
+          <string>test.fail</string>
+        </dict>
+      </array>
+      <key>end</key>
+      <string>Finished</string>
+    </dict>
+    <dict>
+      <key>comment</key>
+      <string>color syntax response</string>
+      <key>match</key>
+      <string>Syntax OK</string>
+      <key>name</key>
+      <string>test.pass</string>
+    </dict>
+  </array>
+  <key>scopeName</key>
+  <string>tests.harvey</string>
+</dict>
+</plist>

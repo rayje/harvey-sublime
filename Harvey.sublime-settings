@@ -1,0 +1,6 @@
+{
+	"node": "/Users/rayje/.nvm/v0.10.12/bin/node",
+	"harvey-test-dir": "test/integration",
+	"theme": "Packages/Harvey/TestConsole.hidden-tmTheme",
+	"syntax": "Packages/Harvey/TestConsole.tmLanguage"
+}
