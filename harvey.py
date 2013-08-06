@@ -95,3 +95,23 @@ class HarveySingleTestCommand(HarveyCommand):
 		self.window.run_command("show_panel", {"panel": "output.exec"})
 		self.panel.settings().set("color_scheme", THEME)
 		self.panel.set_syntax_file(SYNTAX)
+
+class HarveyAllTestsCommand(HarveyCommand):
+
+	def run(self, edit):
+		self.window = self.view.window()
+		self.load_config()
+
+		working_dir = self.find_partition_folder()
+		file_name = os.path.basename(self.view.file_name())
+
+		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console' % \
+					(NODE, HARVEY_TEST_DIR, file_name)
+
+		self.run_shell_command(cmd, working_dir)
+
+	def display_results(self):
+		self.panel = self.window.get_output_panel("exec")
+		self.window.run_command("show_panel", {"panel": "output.exec"})
+		self.panel.settings().set("color_scheme", THEME)
+		self.panel.set_syntax_file(SYNTAX)
