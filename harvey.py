@@ -71,6 +71,7 @@ class HarveyRunJsonCommand(HarveyCommand):
 				message = "`%s` exited with a status code of %s\n\n%s" % (cmd, rc, error)
 			else:
 				message = result
+			message = message + '\n\n' + cmd
 
 			new_view.insert(ed, 0, message)
 			new_view.end_edit(ed)
@@ -85,7 +86,7 @@ class HarveySingleTestCommand(HarveyCommand):
 		file_name = os.path.basename(self.view.file_name())
 		test_name = self.get_test_name()
 
-		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console --tags "%s"' % \
+		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console --tags "%s" -c test/integration/config.json' % \
 					(NODE, HARVEY_TEST_DIR, file_name, test_name)
 
 		self.run_shell_command(cmd, working_dir)
@@ -105,7 +106,7 @@ class HarveyAllTestsCommand(HarveyCommand):
 		working_dir = self.find_partition_folder()
 		file_name = os.path.basename(self.view.file_name())
 
-		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console' % \
+		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console -c test/integration/config.json' % \
 					(NODE, HARVEY_TEST_DIR, file_name)
 
 		self.run_shell_command(cmd, working_dir)
