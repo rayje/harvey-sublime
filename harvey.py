@@ -59,6 +59,7 @@ class HarveyRunJsonCommand(HarveyCommand):
 
 		new_view = None
 		new_view = self.window.new_file()
+		new_view.set_scratch(True)
 
 		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r json --tags "%s" -c test/integration/config.json' % \
 					(NODE, HARVEY_TEST_DIR, file_name, test_name)
