@@ -5,6 +5,7 @@ import subprocess
 import json
 import re
 import threading
+import functools
 
 def main_thread(callback, *args, **kwargs):
     # sublime.set_timeout gets used to send things onto the main thread
