@@ -12,27 +12,21 @@ def main_thread(callback, *args, **kwargs):
     # most sublime.[something] calls need to be on the main thread
     sublime.set_timeout(functools.partial(callback, *args, **kwargs), 0)
 
-def _make_text_safeish(text, fallback_encoding, method='decode'):
-    try:
-        unitext = getattr(text, method)('utf-8')
-    except (UnicodeEncodeError, UnicodeDecodeError):
-        unitext = getattr(text, method)(fallback_encoding)
-    return unitext
-
 class HarveyThread(threading.Thread):
-	def __init__(self, command, on_done, working_dir):
+	def __init__(self, command, on_done, working_dir, **kwargs):
 		threading.Thread.__init__(self)
 		self.command = command
 		self.on_done = on_done
 		self.working_dir = working_dir
+		self.kwargs = kwargs
 
 	def run(self):
 		try:
+			# Hack to work in windows
 			shell = os.name == 'nt'
-			if self.working_dir != "":
-				os.chdir(self.working_dir)
 
 			proc = subprocess.Popen(self.command,
+				cwd=self.working_dir,
 				stdout=subprocess.PIPE, 
 				stderr=subprocess.STDOUT,
 				shell=shell, 
@@ -41,13 +35,13 @@ class HarveyThread(threading.Thread):
 			output, error = proc.communicate()
 			return_code = proc.poll()
 
-			main_thread(self.on_done,
-				_make_text_safeish(output, self.fallback_encoding), **self.kwargs)
+			main_thread(self.on_done, output, **self.kwargs)
 		except subprocess.CalledProcessError, e:
 			main_thread(self.on_done, e.returncode)
 		except OSError, e:
 			if e.errno == 2:
-				main_thread(sublime.error_message, "Git binary could not be found in PATH\n\nConsider using the git_command setting for the Git plugin\n\nPATH is: %s" % os.environ['PATH'])
+				error_message = "Harvey binary could not be found in PATH\n\nPATH is: %s" % os.environ['PATH']
+				main_thread(sublime.error_message, error_message)
 			else:
 				raise e
 
@@ -148,6 +142,15 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		self._output_to_view(self.output_view, output, clear=True, **kwargs)
 		self.output_view.set_read_only(True)
 		self.get_window().run_command("show_panel", {"panel": "output.harvey"})
+
+	def run_command(self, command, callback, working_dir):
+		if self.active_view() and self.active_view().settings().get('fallback_encoding'):
+			fallback_encoding = self.active_view().settings().get('fallback_encoding')
+			fallback_encoding = fallback_encoding.rpartition('(')[2].rpartition(')')[0]
+            kwargs['fallback_encoding'] = fallback_encoding
+
+        thread = HarveyThread(command, callback, working_dir)
+        thread.start()
 
 
 class HarveyRunJsonCommand(HarveyCommand):
