@@ -3,8 +3,7 @@ import sublime_plugin
 import os
 import subprocess
 import json
-import sys
-import traceback
+import re
 
 def run_cmd(cwd, cmd):
 	"""
@@ -23,18 +22,25 @@ class HarveyCommand(sublime_plugin.TextCommand):
 
 	def load_config(self):
 		settings = sublime.load_settings("Harvey.sublime-settings")
-		self.settings = settings
 		self.test_dir = settings.get("harvey-test-dir")
 		self.node = settings.get("node")
 		self.theme = settings.get("theme")
 		self.syntax = settings.get('syntax')
 
-	def find_partition_folder(self):
+	def get_parent_dir(self):
+		"""
+			Find the parent directory for the Node app
+			that contains the harvey tests
+		"""
 		folders = self.view.window().folders()
+		last_folder = ''
+
 		for folder in folders:
 			if folder.endswith(self.test_dir):
 				return folder[:folder.index(self.test_dir)]
-			return folder
+			last_folder = folder
+
+		return last_folder
 
 	def get_test_name(self):
 		region = self.view.sel()[0]
@@ -102,7 +108,7 @@ class HarveyRunJsonCommand(HarveyCommand):
 		self.window = self.view.window()
 		self.load_config()
 
-		cwd = self.find_partition_folder()
+		cwd = self.get_parent_dir()
 		file_name = os.path.basename(self.view.file_name())
 		test_name = self.get_test_name()
 
@@ -131,7 +137,7 @@ class HarveySingleTestCommand(HarveyCommand):
 		self.window = self.view.window()
 		self.load_config()
 
-		working_dir = self.find_partition_folder()
+		working_dir = self.get_parent_dir()
 		file_name = os.path.basename(self.view.file_name())
 		test_name = self.get_test_name()
 
@@ -152,7 +158,7 @@ class HarveyAllTestsCommand(HarveyCommand):
 		self.window = self.view.window()
 		self.load_config()
 
-		working_dir = self.find_partition_folder()
+		working_dir = self.get_parent_dir()
 		file_name = os.path.basename(self.view.file_name())
 
 		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console -c test/integration/config.json' % \
@@ -171,7 +177,7 @@ class HarveySelectTestCommand(HarveyCommand):
 	def panel_done(self, picked):
 		test_id = self.test_ids[picked]
 
-		working_dir = self.find_partition_folder()
+		working_dir = self.get_parent_dir()
 		filename = os.path.basename(self.view.file_name())
 
 		self.show_panel(working_dir + "  " + filename + "  " + test_id)
@@ -196,3 +202,19 @@ class HarveySelectTestCommand(HarveyCommand):
 			self.quick_panel(self.test_ids, self.panel_done, sublime.MONOSPACE_FONT)
 		except Exception as e:
 			sublime.error_message(str(e))
+
+class HarveyTestCommand(HarveyCommand):
+
+	def run(self, edit):
+		p = re.compile('\s*"id":\s*"(.*)"')
+		region = self.view.sel()[0]
+		text_string = self.view.substr(region)
+
+		print region
+		line = self.view.substr(self.view.line(region))
+
+		m = p.match(line)
+		if (m):
+			print m.group(1)
+		else:
+			print "no match"
