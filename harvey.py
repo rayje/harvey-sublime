@@ -4,6 +4,52 @@ import os
 import subprocess
 import json
 import re
+import threading
+
+def main_thread(callback, *args, **kwargs):
+    # sublime.set_timeout gets used to send things onto the main thread
+    # most sublime.[something] calls need to be on the main thread
+    sublime.set_timeout(functools.partial(callback, *args, **kwargs), 0)
+
+def _make_text_safeish(text, fallback_encoding, method='decode'):
+    try:
+        unitext = getattr(text, method)('utf-8')
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        unitext = getattr(text, method)(fallback_encoding)
+    return unitext
+
+class HarveyThread(threading.Thread):
+	def __init__(self, command, on_done, working_dir):
+		threading.Thread.__init__(self)
+		self.command = command
+		self.on_done = on_done
+		self.working_dir = working_dir
+
+	def run(self):
+		try:
+			shell = os.name == 'nt'
+			if self.working_dir != "":
+				os.chdir(self.working_dir)
+
+			proc = subprocess.Popen(self.command,
+				stdout=subprocess.PIPE, 
+				stderr=subprocess.STDOUT,
+				shell=shell, 
+				universal_newlines=True)
+
+			output, error = proc.communicate()
+			return_code = proc.poll()
+
+			main_thread(self.on_done,
+				_make_text_safeish(output, self.fallback_encoding), **self.kwargs)
+		except subprocess.CalledProcessError, e:
+			main_thread(self.on_done, e.returncode)
+		except OSError, e:
+			if e.errno == 2:
+				main_thread(sublime.error_message, "Git binary could not be found in PATH\n\nConsider using the git_command setting for the Git plugin\n\nPATH is: %s" % os.environ['PATH'])
+			else:
+				raise e
+
 
 def run_cmd(cwd, cmd):
 	"""
@@ -96,6 +142,7 @@ class HarveyCommand(sublime_plugin.TextCommand):
 	def show_panel(self, output, **kwargs):
 		if not hasattr(self, 'output_view'):
 			self.output_view = self.get_window().get_output_panel("harvey")
+		self.output_view.set_syntax_file(self.syntax)
 		self.output_view.set_read_only(False)
 		self._output_to_view(self.output_view, output, clear=True, **kwargs)
 		self.output_view.set_read_only(True)
@@ -181,19 +228,23 @@ class HarveySelectTestCommand(HarveyCommand):
 		working_dir = self.get_parent_dir()
 		filename = os.path.basename(self.view.file_name())
 
-		self.show_panel(working_dir + "  " + filename + "  " + test_id)
-
-		# rc, error, result = self.run_test(working_dir, filename, test_id=test_id)
-		# if rc == 0:
-		# 	self.show_panel(result)
-		# else:
-		# 	self.show_panel(error + "\n\n" + result)
+		rc, error, result = self.run_test(working_dir, filename, test_id=test_id)
+		if rc == 0:
+			self.show_panel(result)
+		else:
+			self.show_panel(error + "\n\n" + result)
 
 	def quick_panel(self, *args, **kwargs):
 		self.get_window().show_quick_panel(*args, **kwargs)
 
 	def run(self, edit):
+		filename = os.path.basename(self.view.file_name())
+		if not filename.endswith('.json'):
+			sublime.error_message('File must be a Harvey json file.')
+			return
+
 		self.load_config()
+
 		entireDocument = sublime.Region(0, self.view.size())
 		selection = self.view.substr(entireDocument)
 
@@ -209,9 +260,7 @@ class HarveyTestCommand(HarveyCommand):
 	def run(self, edit):
 		p = re.compile('\s*"id":\s*"(.*)"')
 		region = self.view.sel()[0]
-		text_string = self.view.substr(region)
 
-		print region
 		line = self.view.substr(self.view.line(region))
 
 		m = p.match(line)

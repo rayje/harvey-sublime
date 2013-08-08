@@ -1,5 +1,7 @@
 [
   { "keys": ["ctrl+shift+r"], "command": "harvey_single_test" },
   { "keys": ["ctrl+shift+o"], "command": "harvey_run_json" },
-  { "keys": ["ctrl+shift+a"], "command": "harvey_all_tests" }
+  { "keys": ["ctrl+shift+a"], "command": "harvey_all_tests" },
+  { "keys": ["ctrl+shift+i"], "command": "harvey_select_test" },
+  { "keys": ["ctrl+shift+x"], "command": "harvey_test" }
 ]
