@@ -228,6 +228,9 @@ class HarveySelectTestCommand(HarveyCommand):
 	"""
 
 	def panel_done(self, picked):
+		if picked < 0:
+			return
+
 		test_id = self.test_ids[picked]
 		working_dir = self.get_parent_dir()
 
@@ -251,7 +254,8 @@ class HarveySelectTestCommand(HarveyCommand):
 
 		try:
 			test_json = json.loads(selection)
-			self.test_ids = [test["id"] for test in test_json["tests"]]
+			self.test_ids = [[test["id"], 'Method: ' + test['request']['method'], test['request']['resource']] \
+								for test in test_json["tests"]]
 			self.quick_panel(self.test_ids, self.panel_done, sublime.MONOSPACE_FONT)
 		except Exception as e:
 			sublime.error_message(str(e))
