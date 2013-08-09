@@ -34,6 +34,9 @@ class HarveyThread(threading.Thread):
 			output, error = proc.communicate()
 			return_code = proc.poll()
 
+			output = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]', '', output)
+			output = re.sub(r'\[\d+m', '', output)
+
 			main_thread(self.on_done, return_code, error, output, **self.kwargs)
 
 		except subprocess.CalledProcessError, e:
@@ -77,6 +80,18 @@ class HarveyCommand(sublime_plugin.TextCommand):
 	def get_test_id(self):
 		return self.view.substr(self.view.sel()[0])
 
+	def find_test_on_line(self):
+		p = re.compile('\s*"id":\s*"(.*)"')
+		region = self.view.sel()[0]
+		line = self.view.substr(self.view.line(region))
+
+		test = None
+		m = p.match(line)
+		if (m):
+			test = m.group(1)
+
+		return test
+
 	def build_command(self, filename, test_id=None, reporter="console"):
 		harvey = 'node_modules/harvey/bin/harvey'
 		config = 'test/integration/config.json'
@@ -105,6 +120,7 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		if not hasattr(self, 'output_view'):
 			self.output_view = self.get_window().get_output_panel("harvey")
 		self.output_view.set_syntax_file(self.syntax)
+		self.output_view.settings().set("color_scheme", self.theme)
 		self.output_view.set_read_only(False)
 		self._output_to_view(self.output_view, output, clear=True, **kwargs)
 		self.output_view.set_read_only(True)
@@ -140,17 +156,18 @@ class HarveyRunJsonCommand(HarveyCommand):
 		working_dir = self.get_parent_dir()
 		filename = os.path.basename(self.view.file_name())
 		test_id = self.get_test_id()
+		if test_id == None or test_id == '':
+			test_id = self.find_test_on_line():
 
-		self.command = self.build_command(filename, test_id)
+		# Assume run all tests
+		if test_id == '':
+			test_id == None
+
+		self.command = self.build_command(filename, test_id, "json")
 		self.run_command(self.command, self.on_done, working_dir)
 
 	def on_done(self, rc, error, result):
-		if rc != 0:
-			message = "`%s` exited with a status code of %s\n\n%s" % (self.command, rc, error)
-		else:
-			message = result
-		message = message + '\n\n' + self.command
-
+		message = result + '\n\n' + self.command
 		self.show_scratch(message, 'HARVEY CONSOLE')
 
 
@@ -162,8 +179,13 @@ class HarveySingleTestCommand(HarveyCommand):
 		working_dir = self.get_parent_dir()
 		filename = os.path.basename(self.view.file_name())
 		test_id = self.get_test_id()
+		if test_id == None or test_id == '':
+			test_id = self.find_test_on_line()
 
-		self.command = self.build_command(filename, test_id, "json")
+		if test_id == None or test_id == '':
+			sublime.error_message('Cannot find test id')
+
+		self.command = self.build_command(filename, test_id)
 		self.run_command(self.command, self.on_done, working_dir)
 
 
@@ -214,19 +236,3 @@ class HarveySelectTestCommand(HarveyCommand):
 			self.quick_panel(self.test_ids, self.panel_done, sublime.MONOSPACE_FONT)
 		except Exception as e:
 			sublime.error_message(str(e))
-
-
-
-class HarveyTestCommand(HarveyCommand):
-
-	def run(self, edit):
-		p = re.compile('\s*"id":\s*"(.*)"')
-		region = self.view.sel()[0]
-
-		line = self.view.substr(self.view.line(region))
-
-		m = p.match(line)
-		if (m):
-			print m.group(1)
-		else:
-			print "no match"
