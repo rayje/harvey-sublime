@@ -8,9 +8,9 @@ import threading
 import functools
 
 def main_thread(callback, *args, **kwargs):
-    # sublime.set_timeout gets used to send things onto the main thread
-    # most sublime.[something] calls need to be on the main thread
-    sublime.set_timeout(functools.partial(callback, *args, **kwargs), 0)
+	# sublime.set_timeout gets used to send things onto the main thread
+	# most sublime.[something] calls need to be on the main thread
+	sublime.set_timeout(functools.partial(callback, *args, **kwargs), 0)
 
 class HarveyThread(threading.Thread):
 	def __init__(self, command, on_done, working_dir, **kwargs):
@@ -22,39 +22,30 @@ class HarveyThread(threading.Thread):
 
 	def run(self):
 		try:
-			# Hack to work in windows
-			shell = os.name == 'nt'
+			if self.working_dir != "":
+				os.chdir(self.working_dir)
 
 			proc = subprocess.Popen(self.command,
 				cwd=self.working_dir,
-				stdout=subprocess.PIPE, 
-				stderr=subprocess.STDOUT,
-				shell=shell, 
-				universal_newlines=True)
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE,
+				shell=True)
 
 			output, error = proc.communicate()
 			return_code = proc.poll()
 
-			main_thread(self.on_done, output, **self.kwargs)
+			main_thread(self.on_done, return_code, error, output, **self.kwargs)
+
 		except subprocess.CalledProcessError, e:
-			main_thread(self.on_done, e.returncode)
+			main_thread(self.on_done, e.returncode, e.output, e.cmd)
+
 		except OSError, e:
 			if e.errno == 2:
-				error_message = "Harvey binary could not be found in PATH\n\nPATH is: %s" % os.environ['PATH']
+				error_message = "Node binary could not be found in PATH\n\nPATH is: %s" % os.environ['PATH']
 				main_thread(sublime.error_message, error_message)
 			else:
 				raise e
 
-
-def run_cmd(cwd, cmd):
-	"""
-		Run a command using the shell
-	"""
-	proc = subprocess.Popen(cmd, cwd=cwd, shell=True,
-							stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	output, error = proc.communicate()
-	return_code = proc.poll()
-	return (return_code, error, output.decode('utf8'))
 
 class HarveyCommand(sublime_plugin.TextCommand):
 
@@ -89,41 +80,21 @@ class HarveyCommand(sublime_plugin.TextCommand):
 
 		return text_string
 
-	def run_shell_command(self, command, working_dir):
-		if not command:
-			return False
+	def build_command(self, filename, test_id=None, reporter="console"):
+		harvey = 'node_modules/harvey/bin/harvey'
+		config = 'test/integration/config.json'
+		node = self.node
+		test_dir = self.test_dir
+		test = "%s/%s" % (test_dir, filename)
 
-		self.view.window().run_command("exec", {
-			"cmd": [command],
-			"shell": True,
-			"working_dir": working_dir
-		})
+		command = '%s %s -c %s -r %s -t %s' % \
+				(node, harvey, config, reporter, test)
 
-		self.display_results()
+		if test_id:
+			tags = ' --tags "%s"' % test_id
+			command = command + tags
 
-	def run_cmd(self, cwd, cmd):
-		"""
-			Run a command using the shell
-		"""
-		proc = subprocess.Popen(cmd,
-								cwd=cwd,
-								shell=True,
-								stdout=subprocess.PIPE,
-								stderr=subprocess.PIPE)
-		output, error = proc.communicate()
-		return_code = proc.poll()
-
-		return (return_code, error, output.decode('utf8'))
-
-	def run_test(self, cwd, filename, reporter="console", test_id=None):
-		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r %s -c test/integration/config.json' % \
-					(self.node, self.test_dir, filename, reporter)
-
-		if test_id != None:
-			tags = ' --tags "%s"' % (test_id)
-			cmd = cmd + tags
-
-		return run_cmd(cwd, cmd)
+		return command
 
 	def _output_to_view(self, output_file, output, clear=False, **kwargs):
 		output_file.set_syntax_file(self.syntax)
@@ -143,14 +114,18 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		self.output_view.set_read_only(True)
 		self.get_window().run_command("show_panel", {"panel": "output.harvey"})
 
-	def run_command(self, command, callback, working_dir):
-		if self.active_view() and self.active_view().settings().get('fallback_encoding'):
-			fallback_encoding = self.active_view().settings().get('fallback_encoding')
-			fallback_encoding = fallback_encoding.rpartition('(')[2].rpartition(')')[0]
-            kwargs['fallback_encoding'] = fallback_encoding
+	def run_command(self, command, callback, working_dir, **kwargs):
+		thread = HarveyThread(command, callback, working_dir, **kwargs)
+		thread.start()
 
-        thread = HarveyThread(command, callback, working_dir)
-        thread.start()
+	def quick_panel(self, *args, **kwargs):
+		self.get_window().show_quick_panel(*args, **kwargs)
+
+	def on_done(self, rc, error, result):
+		if len(result) and rc == 0:
+			self.show_panel(result)
+		else:
+			self.show_panel(self.command + '\n\n' + error + "\n\n" + result)
 
 
 class HarveyRunJsonCommand(HarveyCommand):
@@ -159,29 +134,30 @@ class HarveyRunJsonCommand(HarveyCommand):
 		self.window = self.view.window()
 		self.load_config()
 
-		cwd = self.get_parent_dir()
-		file_name = os.path.basename(self.view.file_name())
-		test_name = self.get_test_name()
+		working_dir = self.get_parent_dir()
+		filename = os.path.basename(self.view.file_name())
+		test_id = self.get_test_name()
 
+		self.command = self.build_command(filename, test_id)
+		self.run_command(self.command, self.on_done, working_dir)
+
+	def on_done(self, rc, error, result):
 		new_view = None
 		new_view = self.window.new_file()
 		new_view.set_scratch(True)
+		new_view.set_name('HARVEY CONSOLE')
 
-		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r json --tags "%s" -c test/integration/config.json' % \
-					(self.node, self.test_dir, file_name, test_name)
+		ed = new_view.begin_edit()
 
-		if new_view != None:
-			ed = new_view.begin_edit()
+		if rc != 0:
+			message = "`%s` exited with a status code of %s\n\n%s" % (self.command, rc, error)
+		else:
+			message = result
+		message = message + '\n\n' + self.command
 
-			rc, error, result = run_cmd(cwd, cmd)
-			if rc != 0:
-				message = "`%s` exited with a status code of %s\n\n%s" % (cmd, rc, error)
-			else:
-				message = result
-			message = message + '\n\n' + cmd
+		new_view.insert(ed, 0, message)
+		new_view.end_edit(ed)
 
-			new_view.insert(ed, 0, message)
-			new_view.end_edit(ed)
 
 class HarveySingleTestCommand(HarveyCommand):
 
@@ -190,19 +166,12 @@ class HarveySingleTestCommand(HarveyCommand):
 		self.load_config()
 
 		working_dir = self.get_parent_dir()
-		file_name = os.path.basename(self.view.file_name())
-		test_name = self.get_test_name()
+		filename = os.path.basename(self.view.file_name())
+		test_id = self.get_test_name()
 
-		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console --tags "%s" -c test/integration/config.json' % \
-					(self.node, self.test_dir, file_name, test_name)
+		self.command = self.build_command(filename, test_id, "json")
+		self.run_command(self.command, self.on_done, working_dir)
 
-		self.run_shell_command(cmd, working_dir)
-
-	def display_results(self):
-		self.panel = self.window.get_output_panel("exec")
-		self.window.run_command("show_panel", {"panel": "output.exec"})
-		self.panel.settings().set("color_scheme", self.theme)
-		self.panel.set_syntax_file(self.syntax)
 
 class HarveyAllTestsCommand(HarveyCommand):
 
@@ -211,39 +180,33 @@ class HarveyAllTestsCommand(HarveyCommand):
 		self.load_config()
 
 		working_dir = self.get_parent_dir()
-		file_name = os.path.basename(self.view.file_name())
+		filename = os.path.basename(self.view.file_name())
 
-		cmd = '%s node_modules/harvey/bin/harvey -t %s/%s -r console -c test/integration/config.json' % \
-					(self.node, self.test_dir, file_name)
+		self.command = self.build_command(filename)
+		self.run_command(self.command, self.on_done, working_dir)
 
-		self.run_shell_command(cmd, working_dir)
-
-	def display_results(self):
-		self.panel = self.window.get_output_panel("exec")
-		self.window.run_command("show_panel", {"panel": "output.exec"})
-		self.panel.settings().set("color_scheme", self.theme)
-		self.panel.set_syntax_file(self.syntax)
 
 class HarveySelectTestCommand(HarveyCommand):
+	"""
+		The HarveySelectTestCommand display all the tests defined
+		in a Harvey JSON test file in a list.
+
+		Selecting a test from the list will run the test.
+	"""
 
 	def panel_done(self, picked):
 		test_id = self.test_ids[picked]
-
 		working_dir = self.get_parent_dir()
-		filename = os.path.basename(self.view.file_name())
 
-		rc, error, result = self.run_test(working_dir, filename, test_id=test_id)
-		if rc == 0:
-			self.show_panel(result)
-		else:
-			self.show_panel(error + "\n\n" + result)
-
-	def quick_panel(self, *args, **kwargs):
-		self.get_window().show_quick_panel(*args, **kwargs)
+		self.command = self.build_command(self.filename, test_id, "json")
+		self.run_command(self.command, self.on_done, working_dir)
 
 	def run(self, edit):
-		filename = os.path.basename(self.view.file_name())
-		if not filename.endswith('.json'):
+		"""
+			Start point for the SelectTest command.
+		"""
+		self.filename = os.path.basename(self.view.file_name())
+		if not self.filename.endswith('.json'):
 			sublime.error_message('File must be a Harvey json file.')
 			return
 
@@ -253,11 +216,13 @@ class HarveySelectTestCommand(HarveyCommand):
 		selection = self.view.substr(entireDocument)
 
 		try:
-			hvy = json.loads(selection)
-			self.test_ids = [test["id"] for test in hvy["tests"]]
+			test_json = json.loads(selection)
+			self.test_ids = [test["id"] for test in test_json["tests"]]
 			self.quick_panel(self.test_ids, self.panel_done, sublime.MONOSPACE_FONT)
 		except Exception as e:
 			sublime.error_message(str(e))
+
+
 
 class HarveyTestCommand(HarveyCommand):
 
