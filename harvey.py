@@ -139,6 +139,10 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		else:
 			self.show_panel(self.command + '\n\n' + error + "\n\n" + result)
 
+	def on_done_scratch(self, rc, error, result):
+		message = result + '\n\n' + self.command
+		self.show_scratch(message, 'HARVEY CONSOLE')
+
 	def show_scratch(self, message, title):
 		new_view = self.get_window().new_file()
 		new_view.set_scratch(True)
@@ -157,18 +161,14 @@ class HarveyRunJsonCommand(HarveyCommand):
 		filename = os.path.basename(self.view.file_name())
 		test_id = self.get_test_id()
 		if test_id == None or test_id == '':
-			test_id = self.find_test_on_line():
+			test_id = self.find_test_on_line()
 
 		# Assume run all tests
 		if test_id == '':
 			test_id == None
 
 		self.command = self.build_command(filename, test_id, "json")
-		self.run_command(self.command, self.on_done, working_dir)
-
-	def on_done(self, rc, error, result):
-		message = result + '\n\n' + self.command
-		self.show_scratch(message, 'HARVEY CONSOLE')
+		self.run_command(self.command, self.on_done_scratch, working_dir)
 
 
 class HarveySingleTestCommand(HarveyCommand):
@@ -214,7 +214,8 @@ class HarveySelectTestCommand(HarveyCommand):
 		working_dir = self.get_parent_dir()
 
 		self.command = self.build_command(self.filename, test_id, "json")
-		self.run_command(self.command, self.on_done, working_dir)
+		self.run_command(self.command, self.on_done_scratch, working_dir)
+
 
 	def run(self, edit):
 		"""
