@@ -74,11 +74,8 @@ class HarveyCommand(sublime_plugin.TextCommand):
 
 		return last_folder
 
-	def get_test_name(self):
-		region = self.view.sel()[0]
-		text_string = self.view.substr(region)
-
-		return text_string
+	def get_test_id(self):
+		return self.view.substr(self.view.sel()[0])
 
 	def build_command(self, filename, test_id=None, reporter="console"):
 		harvey = 'node_modules/harvey/bin/harvey'
@@ -86,7 +83,6 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		node = self.node
 		test_dir = self.test_dir
 		test = "%s/%s" % (test_dir, filename)
-
 		command = '%s %s -c %s -r %s -t %s' % \
 				(node, harvey, config, reporter, test)
 
@@ -127,47 +123,45 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		else:
 			self.show_panel(self.command + '\n\n' + error + "\n\n" + result)
 
+	def show_scratch(self, message, title):
+		new_view = self.get_window().new_file()
+		new_view.set_scratch(True)
+		new_view.set_name(title)
+		edit = new_view.begin_edit()
+		new_view.insert(edit, 0, message)
+		new_view.end_edit(edit)
+
 
 class HarveyRunJsonCommand(HarveyCommand):
 
 	def run(self, edit):
-		self.window = self.view.window()
 		self.load_config()
 
 		working_dir = self.get_parent_dir()
 		filename = os.path.basename(self.view.file_name())
-		test_id = self.get_test_name()
+		test_id = self.get_test_id()
 
 		self.command = self.build_command(filename, test_id)
 		self.run_command(self.command, self.on_done, working_dir)
 
 	def on_done(self, rc, error, result):
-		new_view = None
-		new_view = self.window.new_file()
-		new_view.set_scratch(True)
-		new_view.set_name('HARVEY CONSOLE')
-
-		ed = new_view.begin_edit()
-
 		if rc != 0:
 			message = "`%s` exited with a status code of %s\n\n%s" % (self.command, rc, error)
 		else:
 			message = result
 		message = message + '\n\n' + self.command
 
-		new_view.insert(ed, 0, message)
-		new_view.end_edit(ed)
+		self.show_scratch(message, 'HARVEY CONSOLE')
 
 
 class HarveySingleTestCommand(HarveyCommand):
 
 	def run(self, edit):
-		self.window = self.view.window()
 		self.load_config()
 
 		working_dir = self.get_parent_dir()
 		filename = os.path.basename(self.view.file_name())
-		test_id = self.get_test_name()
+		test_id = self.get_test_id()
 
 		self.command = self.build_command(filename, test_id, "json")
 		self.run_command(self.command, self.on_done, working_dir)
@@ -176,7 +170,6 @@ class HarveySingleTestCommand(HarveyCommand):
 class HarveyAllTestsCommand(HarveyCommand):
 
 	def run(self, edit):
-		self.window = self.view.window()
 		self.load_config()
 
 		working_dir = self.get_parent_dir()
