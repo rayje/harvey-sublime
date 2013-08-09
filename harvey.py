@@ -12,13 +12,25 @@ def main_thread(callback, *args, **kwargs):
 	# most sublime.[something] calls need to be on the main thread
 	sublime.set_timeout(functools.partial(callback, *args, **kwargs), 0)
 
+def _make_text_safeish(text, fallback_encoding, method='decode'):
+	# The unicode decode here is because sublime converts to unicode inside
+	# insert in such a way that unknown characters will cause errors, which is
+	# distinctly non-ideal... and there's no way to tell what's coming out of
+	# git in output. So...
+	try:
+		unitext = getattr(text, method)('utf-8')
+	except (UnicodeEncodeError, UnicodeDecodeError):
+		unitext = getattr(text, method)(fallback_encoding)
+	return unitext
+
 class HarveyThread(threading.Thread):
-	def __init__(self, command, on_done, working_dir, **kwargs):
+	def __init__(self, command, on_done, working_dir, fallback_encoding="", **kwargs):
 		threading.Thread.__init__(self)
 		self.command = command
 		self.on_done = on_done
 		self.working_dir = working_dir
 		self.kwargs = kwargs
+		self.fallback_encoding = fallback_encoding
 
 	def run(self):
 		try:
@@ -34,7 +46,8 @@ class HarveyThread(threading.Thread):
 			output, error = proc.communicate()
 			return_code = proc.poll()
 
-			output = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]', '', output)
+			output = _make_text_safeish(output, self.fallback_encoding)
+			output = re.sub(r'[\x0e-\x1f\x7f-\xff]', '', output)
 			output = re.sub(r'\[\d+m', '', output)
 
 			main_thread(self.on_done, return_code, error, output, **self.kwargs)
@@ -127,6 +140,11 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		self.get_window().run_command("show_panel", {"panel": "output.harvey"})
 
 	def run_command(self, command, callback, working_dir, **kwargs):
+		window = self.get_window()
+		if window.active_view() and window.active_view().settings().get('fallback_encoding'):
+			fallback_encoding = window.active_view().settings().get('fallback_encoding')
+			kwargs['fallback_encoding'] = fallback_encoding.rpartition('(')[2].rpartition(')')[0]
+
 		thread = HarveyThread(command, callback, working_dir, **kwargs)
 		thread.start()
 
