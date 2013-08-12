@@ -15,10 +15,12 @@ Each of the commands listed above can be output either to a scratch file or to t
 
 The harvey_run_test and harvey_select_test commands both take default arguments that define how to run and output the test. Each of the arguments can be overridden by adding an entry to your default keymap file.
 
-Installation
-------------
+Installation Options
+--------------------
 
-Go to your Sublime Text 2 `Packages` directory
+* [Package Control](http://wbond.net/sublime_packages/package_control)
+
+* Go to your Sublime Text 2 `Packages` directory
 
  - OS X:    `~/Library/Application\ Support/Sublime\ Text\ 2/Packages`
  - Windows: `%APPDATA%/Sublime Text 2/Packages/`
