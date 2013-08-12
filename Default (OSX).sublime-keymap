@@ -1,6 +1,15 @@
 [
-  { "keys": ["super+shift+r"], "command": "harvey_single_test" },
-  { "keys": ["super+shift+o"], "command": "harvey_run_json" },
-  { "keys": ["super+shift+a"], "command": "harvey_all_tests" },
-  { "keys": ["super+shift+i"], "command": "harvey_select_test" }
+	{ "keys": ["super+shift+r"], "command": "harvey_single_test" },
+	{ "keys": ["super+shift+o"], "command": "harvey_run_json" },
+	{ "keys": ["super+shift+a"], "command": "harvey_all_tests" },
+	{ "keys": ["super+shift+i"], "command": "harvey_select_test" },
+	{
+		"keys": ["super+shift+x"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": true,
+			"reporter": "json",
+			"scratch": true
+		}
+	}
 ]

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>name</key>
+  <string>TestConsole</string>
+  <key>patterns</key>
+  <array>
+
+	<dict>
+		<key>comment</key>
+      	<string>test pass</string>
+		<key>captures</key>
+		<dict>
+			<key>1</key>
+			<dict>
+				<key>name</key>
+				<string>field.name</string>
+			</dict>
+			<key>2</key>
+			<dict>
+				<key>name</key>
+				<string>field.name</string>
+			</dict>
+		</dict>
+		<key>match</key>
+		<string>\"([a-zA-Z0-9]+)\":\s\"([a-zA-Z]+)\"</string>
+	</dict>
+
+	
+
+    <dict>
+      <key>comment</key>
+      <string>test pass</string>
+      <key>match</key>
+      <string>\"(valid)\":\s(?=true)</string>
+      <key>name</key>
+      <string>field.name.valid</string>
+    </dict>
+
+    <dict>
+      <key>comment</key>
+      <string>test pass</string>
+      <key>match</key>
+      <string>\"(valid)\":\s(?=false)</string>
+      <key>name</key>
+      <string>field.name.invalid</string>
+    </dict>
+
+    <dict>
+      <key>comment</key>
+      <string>test error</string>
+      <key>match</key>
+      <string>\"(error)\":\s(?!null)</string>
+      <key>name</key>
+      <string>field.error</string>
+    </dict>
+
+    <dict>
+      <key>comment</key>
+      <string>test error detail</string>
+      <key>match</key>
+      <string>\"(code|errno|syscall|expectedValue|actualValue)\"</string>
+      <key>name</key>
+      <string>field.error.detail</string>
+    </dict>
+
+    <dict>
+      <key>comment</key>
+      <string>test error code</string>
+      <key>match</key>
+      <string>\"(ECONNREFUSED)\"</string>
+      <key>name</key>
+      <string>field.error.code</string>
+    </dict>
+
+    <dict>
+      <key>comment</key>
+      <string>test bool</string>
+      <key>match</key>
+      <string>(true|false|null)</string>
+      <key>name</key>
+      <string>field.bool</string>
+    </dict>
+
+	<dict>
+		<key>comment</key>
+		<string>handles integer and decimal numbers</string>
+		<key>match</key>
+		<string>(?=([^"]*"[^"]*")*[^"]*$)(?x:-?(?:0|[1-9]\d*)(?:(?:\.\d+)?(?:[eE][+-]?\d+)?)?)</string>
+		<key>name</key>
+		<string>field.number</string>
+	</dict>
+
+	<dict>
+		<key>captures</key>
+		<dict>
+			<key>1</key>
+			<dict>
+				<key>name</key>
+				<string>field.name</string>
+			</dict>
+		</dict>
+		<key>match</key>
+		<string>\"([a-zA-Z0-9]+)\":</string>
+	</dict>
+
+  </array>
+  <key>scopeName</key>
+  <string>tests.harvey</string>
+</dict>
+</plist>

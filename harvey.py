@@ -165,6 +165,8 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		new_view = self.get_window().new_file()
 		new_view.set_scratch(True)
 		new_view.set_name(title)
+		new_view.set_syntax_file("Packages/Harvey/Harvey-JSON.tmLanguage")
+		new_view.settings().set("color_scheme", "Packages/Harvey/Harvey-JSON.hidden-tmTheme")
 		edit = new_view.begin_edit()
 		new_view.insert(edit, 0, message)
 		new_view.end_edit(edit)
@@ -231,7 +233,7 @@ class HarveySelectTestCommand(HarveyCommand):
 		if picked < 0:
 			return
 
-		test_id = self.test_ids[picked]
+		test_id = self.test_ids[picked][0]
 		working_dir = self.get_parent_dir()
 
 		self.command = self.build_command(self.filename, test_id, "json")
@@ -259,3 +261,36 @@ class HarveySelectTestCommand(HarveyCommand):
 			self.quick_panel(self.test_ids, self.panel_done, sublime.MONOSPACE_FONT)
 		except Exception as e:
 			sublime.error_message(str(e))
+
+class HarveyRunTestCommand(HarveyCommand):
+
+	def run(self, edit, all=False, reporter="console", scratch=False):
+		self.filename = os.path.basename(self.view.file_name())
+		if not self.filename.endswith('.json'):
+			sublime.error_message('File must be a Harvey json file.')
+			return
+
+		if reporter not in ['console', 'json']:
+			sublime.error_message('Invalid reporter: ' + reporter)
+			return
+
+		self.load_config()
+
+		working_dir = self.get_parent_dir()
+		test_id = None
+
+		if not all:
+			test_id = self.get_test_id()
+			if test_id == None or test_id == '':
+				test_id = self.find_test_on_line()
+			if test_id == None:
+				sublime.error_message('No tests were selected')
+				return
+
+		if scratch:
+			callback = self.on_done_scratch
+		else:
+			callback = self.on_done
+
+		self.command = self.build_command(self.filename, test_id, reporter)
+		self.run_command(self.command, callback, working_dir)
