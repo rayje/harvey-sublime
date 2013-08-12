@@ -145,6 +145,8 @@ class HarveyCommand(sublime_plugin.TextCommand):
 			fallback_encoding = window.active_view().settings().get('fallback_encoding')
 			kwargs['fallback_encoding'] = fallback_encoding.rpartition('(')[2].rpartition(')')[0]
 
+		self.save_test_run(command, self.scratch, working_dir)
+
 		thread = HarveyThread(command, callback, working_dir, **kwargs)
 		thread.start()
 
@@ -170,6 +172,15 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		edit = new_view.begin_edit()
 		new_view.insert(edit, 0, message)
 		new_view.end_edit(edit)
+
+	def save_test_run(self, command, scratch, working_dir):
+		s = sublime.load_settings("Harvey.last-run")
+
+		s.set("last_test_run", command)
+		s.set("last_test_working_dir", working_dir)
+		s.set("last_test_scratch", scratch)
+
+		sublime.save_settings("Harvey.last-run")
 
 
 class HarveySelectTestCommand(HarveyCommand):
@@ -262,3 +273,21 @@ class HarveyRunTestCommand(HarveyCommand):
 
 		self.command = self.build_command(self.filename, test_id, reporter)
 		self.run_command(self.command, callback, working_dir)
+
+
+class HarveyLastTestCommand(HarveyCommand):
+
+	def run(self, edit):
+		self.load_config()
+
+		s = sublime.load_settings("Harvey.last-run")
+		command = s.get("last_test_run")
+		working_dir = s.get("last_test_working_dir")
+		self.scratch = s.get("last_test_scratch")
+
+		if self.scratch:
+			callback = self.on_done_scratch
+		else:
+			callback = self.on_done
+
+		self.run_command(command, callback, working_dir)

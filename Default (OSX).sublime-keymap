@@ -48,5 +48,10 @@
 			"reporter": "console",
 			"scratch": false
 		}
+	},
+
+	{
+		"keys": ["ctrl+shift+l"],
+		"command": "harvey_last_test"
 	}
 ]
