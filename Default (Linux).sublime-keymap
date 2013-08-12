@@ -1,8 +1,60 @@
 [
-  { "keys": ["ctrl+shift+r"], "command": "harvey_single_test" },
-  { "keys": ["ctrl+shift+o"], "command": "harvey_run_json" },
-  { "keys": ["ctrl+shift+a"], "command": "harvey_all_tests" },
-  { "keys": ["ctrl+shift+i"], "command": "harvey_select_test" },
-  { "keys": ["ctrl+shift+x"], "command": "harvey_run_test", "args": {"all": true} }
+	// Run single test, output to console
+	{
+		"keys": ["ctrl+shift+r"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": false,
+			"reporter": "console",
+			"scratch": false
+		}
+	},
 
+	// Run single test, output to scratch
+	{
+		"keys": ["ctrl+shift+o"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": true,
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	// Run single test, output to scratch
+	{
+		"keys": ["ctrl+shift+a"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": false,
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	// Select a test from quick panel, output to scratch
+	{
+		"keys": ["ctrl+shift+i"],
+		"command": "harvey_select_test",
+		"args": {
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	// Select a test from quick panel, output to console
+	{
+		"keys": ["ctrl+shift+u"],
+		"command": "harvey_select_test",
+		"args": {
+			"reporter": "console",
+			"scratch": false
+		}
+	},
+
+	// Run the last test
+	{
+		"keys": ["ctrl+shift+l"],
+		"command": "harvey_last_test"
+	}
 ]
