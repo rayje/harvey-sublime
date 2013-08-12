@@ -1,6 +1,6 @@
 {
 	"node": "node",
 	"harvey-test-dir": "test/integration",
-	"theme": "Packages/Harvey/TestConsole.hidden-tmTheme",
-	"syntax": "Packages/Harvey/TestConsole.tmLanguage"
+	"harvey": "node_modules/harvey/bin/harvey",
+	"config": "test/integration/config.json"
 }

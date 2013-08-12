@@ -72,8 +72,10 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		settings = sublime.load_settings("Harvey.sublime-settings")
 		self.test_dir = settings.get("harvey-test-dir")
 		self.node = settings.get("node")
-		self.theme = settings.get("theme")
-		self.syntax = settings.get('syntax')
+		self.theme = "Packages/Harvey/TestConsole.hidden-tmTheme"
+		self.syntax = "Packages/Harvey/TestConsole.tmLanguage"
+		self.harvey = settings.get("harvey")
+		self.config = settings.get("config")
 
 	def get_parent_dir(self):
 		"""
@@ -106,8 +108,8 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		return test
 
 	def build_command(self, filename, test_id=None, reporter="console"):
-		harvey = 'node_modules/harvey/bin/harvey'
-		config = 'test/integration/config.json'
+		harvey = self.harvey
+		config = self.config
 		node = self.node
 		test_dir = self.test_dir
 		test = "%s/%s" % (test_dir, filename)

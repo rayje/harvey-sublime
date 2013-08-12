@@ -4,7 +4,12 @@ harvey-sublime plugin
 Features
 --------
 
-  - Run harvey tests (all tests from file / single test)
+The following are the commands the plugin provides:
+ * ***harvey_run_test*** - Runs a single test or all tests in a Harvey test file.
+ * ***harvey_select_test*** - Runs the test selected from a quick panel.
+ * ***harvey_last_test*** - Runs the last test
+
+Each of the command listed above can be output either to a scratch file or to the console
 
 Installation
 ------------
@@ -19,18 +24,66 @@ and clone the repository:
 
 	git clone git@github.com:rayje/harvey-sublime.git Harvey
 
-Usage
------
+Keyboard mappings
+-----------------
+
+The following are the default key mapping for the commands listed above. The defaults can be overridden by adding an entry to the `Default keymap - User` file.
 
 Mac:
- - Run single harvey test (console): `Command-Shift-R`
- - Run single harvey test (json): `Command-Shift-O`
- - Run all tests in harvey test file (console): `Command-Shift-A`
+ - Run single harvey test (reporter=console, output=console): `Command-Shift-R`
+ - Run single harvey test (reporter=json, output=scratch): `Command-Shift-O`
+ - Run all tests in harvey test file (reporter=console, output=scratch): `Command-Shift-A`
+ - Select a test to run from quick panel (reporter=json, output=scratch): `Command-Shift-I`
+ - Select a test to run from quick panel (reporter=console, output=console): `Command-Shift-U`
+ - Run the last test: `Command+Shift+L`
 
 Linux/Windows:
- - Run single harvey test (console): `Ctrl-Shift-R`
- - Run single harvey test (json): `Ctrl-Shift-O`
- - Run all tests in harvey test file (console): `Ctrl-Shift-A`
+ - Run single harvey test (reporter=console, output=console): `Control-Shift-R`
+ - Run single harvey test (reporter=json, output=scratch): `Control-Shift-O`
+ - Run all tests in harvey test file (reporter=console, output=scratch): `Control-Shift-A`
+ - Select a test to run from quick panel (reporter=json, output=scratch): `Control-Shift-I`
+ - Select a test to run from quick panel (reporter=console, output=console): `Control-Shift-U`
+ - Run the last test: `Control+Shift+L`
+
+### Overriding Default Keybindings
+
+To override the default keybindings your User Keybinding File and add the following keybindings:
+
+**To override the harvey_run_test command**
+
+```json
+	[
+	    {
+			"keys": ["ctrl+shift+r"],
+			"command": "harvey_run_test",
+			"args": {
+				// Run all tests in a test file
+				"all": false,
+				// Reporter to be used in the Harvey command
+				"reporter": "console",
+				// Output to a scratch file, False outputs to console
+				"scratch": false
+			}
+		}
+	]
+```
+
+**To override the harvey_select_test command**
+
+```json
+	[
+	    {
+			"keys": ["super+shift+u"],
+			"command": "harvey_select_test",
+			"args": {
+				// Reporter to be used in the Harvey command
+				"reporter": "console",
+				// Output to a scratch file, False outputs to console
+				"scratch": false
+			}
+		}
+	]
+```
 
 Configuring
 -----------
@@ -43,10 +96,11 @@ The following is a description of the settings that can be overridden in the set
 
 * ***node*** - This is the location where the node executable lives. By default it expects the executable to be on the user's PATH. To configure the plugin to use another version of node.
 
-* ***harvey-test-dir*** - This is the directory within the current project where the harvey tests live. 
+* ***harvey-test-dir*** - This is the directory within the current project where the harvey tests live.
 		(Default: test/integration)
 
-Future
-------
+* ***harvey*** - The location of the Harvey executable.
+		(Default: node_modules/harvey/bin/harvey)
 
- - Run last harvey test(s): `Command-Shift-E`
+* ***config*** - The config file to be used in the command line argument.
+		(Default: test/integration/config.json)
