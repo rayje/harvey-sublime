@@ -1,7 +1,7 @@
 harvey-sublime plugin
 =========================
 
-A Sublime plugin to assist in test development for [Harvey][https://github.com/tschwecke/harvey]
+A Sublime plugin to assist in test development for [Harvey][splitscreen_link]
 
 Features
 --------
