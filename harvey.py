@@ -172,55 +172,6 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		new_view.end_edit(edit)
 
 
-class HarveyRunJsonCommand(HarveyCommand):
-
-	def run(self, edit):
-		self.load_config()
-
-		working_dir = self.get_parent_dir()
-		filename = os.path.basename(self.view.file_name())
-		test_id = self.get_test_id()
-		if test_id == None or test_id == '':
-			test_id = self.find_test_on_line()
-
-		# Assume run all tests
-		if test_id == '':
-			test_id == None
-
-		self.command = self.build_command(filename, test_id, "json")
-		self.run_command(self.command, self.on_done_scratch, working_dir)
-
-
-class HarveySingleTestCommand(HarveyCommand):
-
-	def run(self, edit):
-		self.load_config()
-
-		working_dir = self.get_parent_dir()
-		filename = os.path.basename(self.view.file_name())
-		test_id = self.get_test_id()
-		if test_id == None or test_id == '':
-			test_id = self.find_test_on_line()
-
-		if test_id == None or test_id == '':
-			sublime.error_message('Cannot find test id')
-
-		self.command = self.build_command(filename, test_id)
-		self.run_command(self.command, self.on_done, working_dir)
-
-
-class HarveyAllTestsCommand(HarveyCommand):
-
-	def run(self, edit):
-		self.load_config()
-
-		working_dir = self.get_parent_dir()
-		filename = os.path.basename(self.view.file_name())
-
-		self.command = self.build_command(filename)
-		self.run_command(self.command, self.on_done, working_dir)
-
-
 class HarveySelectTestCommand(HarveyCommand):
 	"""
 		The HarveySelectTestCommand display all the tests defined
@@ -233,14 +184,22 @@ class HarveySelectTestCommand(HarveyCommand):
 		if picked < 0:
 			return
 
-		test_id = self.test_ids[picked][0]
 		working_dir = self.get_parent_dir()
+		test_id = self.test_ids[picked][0]
 
-		self.command = self.build_command(self.filename, test_id, "json")
-		self.run_command(self.command, self.on_done_scratch, working_dir)
+		if test_id == 'All tests':
+			test_id = None
+
+		if self.scratch:
+			callback = self.on_done_scratch
+		else:
+			callback = self.on_done
+
+		self.command = self.build_command(self.filename, test_id, self.reporter)
+		self.run_command(self.command, callback, working_dir)
 
 
-	def run(self, edit):
+	def run(self, edit, reporter="console", scratch=False):
 		"""
 			Start point for the SelectTest command.
 		"""
@@ -249,18 +208,27 @@ class HarveySelectTestCommand(HarveyCommand):
 			sublime.error_message('File must be a Harvey json file.')
 			return
 
+		if reporter not in ['console', 'json']:
+			sublime.error_message('Invalid reporter: ' + reporter)
+			return
+
 		self.load_config()
+		self.reporter = reporter
+		self.scratch = scratch
 
 		entireDocument = sublime.Region(0, self.view.size())
 		selection = self.view.substr(entireDocument)
 
 		try:
 			test_json = json.loads(selection)
-			self.test_ids = [[test["id"], 'Method: ' + test['request']['method'], test['request']['resource']] \
+			self.test_ids = [["All tests", "Run all tests", "File: " + self.filename]]
+			tests = [[test["id"], 'Method: ' + test['request']['method'], test['request']['resource']] \
 								for test in test_json["tests"]]
+			self.test_ids.extend(tests)
 			self.quick_panel(self.test_ids, self.panel_done, sublime.MONOSPACE_FONT)
 		except Exception as e:
 			sublime.error_message(str(e))
+
 
 class HarveyRunTestCommand(HarveyCommand):
 

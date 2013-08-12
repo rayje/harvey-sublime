@@ -1,15 +1,52 @@
 [
-	{ "keys": ["super+shift+r"], "command": "harvey_single_test" },
-	{ "keys": ["super+shift+o"], "command": "harvey_run_json" },
-	{ "keys": ["super+shift+a"], "command": "harvey_all_tests" },
-	{ "keys": ["super+shift+i"], "command": "harvey_select_test" },
+	// Run single test, output to console
 	{
-		"keys": ["super+shift+x"],
+		"keys": ["super+shift+r"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": false,
+			"reporter": "console",
+			"scratch": false
+		}
+	},
+
+	// Run single test, output to scratch
+	{
+		"keys": ["super+shift+o"],
 		"command": "harvey_run_test",
 		"args": {
 			"all": true,
 			"reporter": "json",
 			"scratch": true
+		}
+	},
+
+	// Run single test, output to scratch
+	{
+		"keys": ["super+shift+a"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": false,
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	{
+		"keys": ["super+shift+i"],
+		"command": "harvey_select_test",
+		"args": {
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	{
+		"keys": ["super+shift+u"],
+		"command": "harvey_select_test",
+		"args": {
+			"reporter": "console",
+			"scratch": false
 		}
 	}
 ]
