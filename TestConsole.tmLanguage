@@ -18,7 +18,7 @@
       <key>comment</key>
       <string>test error</string>
       <key>match</key>
-      <string>(E{1})\b|([1-9]\d* errors)|(\d+\) Error:|cucumber(\s\S*)|[1-9]\d* failed)|test_(\w*\S):</string>
+      <string>(^|\s)[1-9]\d* (failures|validations failed)(^\.+$)</string>
       <key>name</key>
       <string>test.error</string>
     </dict>

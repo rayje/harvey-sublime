@@ -147,6 +147,12 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		self.output_view.set_read_only(True)
 		self.get_window().run_command("show_panel", {"panel": "output.harvey"})
 
+		# Scroll to last line
+		lines, _ = self.output_view.rowcol(self.output_view.size())
+		pt = self.output_view.text_point(lines-1, 0)
+		self.output_view.show(pt)
+
+
 	def run_command(self, command, callback, working_dir, **kwargs):
 		window = self.get_window()
 		if window.active_view() and window.active_view().settings().get('fallback_encoding'):
@@ -155,8 +161,10 @@ class HarveyCommand(sublime_plugin.TextCommand):
 
 		if (hasattr(self, 'reporter')):
 			kwargs['console'] = (self.reporter == 'console')
+		else:
+			kwargs['console'] = False
 
-		self.save_test_run(command, self.scratch, working_dir)
+		self.save_test_run(command, self.scratch, working_dir, kwargs['console'])
 
 		thread = HarveyThread(command, callback, working_dir, **kwargs)
 		thread.start()
@@ -184,12 +192,19 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		new_view.insert(edit, 0, message)
 		new_view.end_edit(edit)
 
-	def save_test_run(self, command, scratch, working_dir):
+		# Goto the first line
+		pt = new_view.text_point(0, 0)
+		new_view.sel().clear()
+		new_view.sel().add(sublime.Region(pt))
+		new_view.show(pt)
+
+	def save_test_run(self, command, scratch, working_dir, console):
 		s = sublime.load_settings("Harvey.last-run")
 
 		s.set("last_test_run", command)
 		s.set("last_test_working_dir", working_dir)
 		s.set("last_test_scratch", scratch)
+		s.set("last_test_console", console)
 
 		sublime.save_settings("Harvey.last-run")
 
@@ -294,13 +309,17 @@ class HarveyLastTestCommand(HarveyCommand):
 		self.load_config()
 
 		s = sublime.load_settings("Harvey.last-run")
-		command = s.get("last_test_run")
+		self.command = s.get("last_test_run")
 		working_dir = s.get("last_test_working_dir")
 		self.scratch = s.get("last_test_scratch")
+		console = s.get("last_test_console")
 
 		if self.scratch:
 			callback = self.on_done_scratch
 		else:
 			callback = self.on_done
 
-		self.run_command(command, callback, working_dir)
+		if console == True:
+			self.reporter = 'console'
+
+		self.run_command(self.command, callback, working_dir)

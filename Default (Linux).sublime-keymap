@@ -1,5 +1,5 @@
 [
-	// Run single test, output to console
+	// Run a single test, output to console
 	{
 		"keys": ["ctrl+shift+r"],
 		"command": "harvey_run_test",
@@ -10,7 +10,18 @@
 		}
 	},
 
-	// Run single test, output to scratch
+	// Run a single test, output to scratch with JSON
+	{
+		"keys": ["ctrl+shift+g"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": false,
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	// Run all tests, output to scratch with JSON
 	{
 		"keys": ["ctrl+shift+o"],
 		"command": "harvey_run_test",
@@ -21,18 +32,18 @@
 		}
 	},
 
-	// Run single test, output to scratch
+	// Run all tests, output to console
 	{
 		"keys": ["ctrl+shift+a"],
 		"command": "harvey_run_test",
 		"args": {
-			"all": false,
-			"reporter": "json",
-			"scratch": true
+			"all": true,
+			"reporter": "console",
+			"scratch": false
 		}
 	},
 
-	// Select a test from quick panel, output to scratch
+	// Select a test from quick panel, output to scratch with JSON
 	{
 		"keys": ["ctrl+shift+i"],
 		"command": "harvey_select_test",
