@@ -7,9 +7,11 @@ Features
 The following are the commands the plugin provides:
  * ***harvey_run_test*** - Runs a single test or all tests in a Harvey test file.
  * ***harvey_select_test*** - Runs the test selected from a quick panel.
- * ***harvey_last_test*** - Runs the last test
+ * ***harvey_last_test*** - Re-runs the last test.
 
-Each of the command listed above can be output either to a scratch file or to the console
+Each of the commands listed above can be output either to a scratch file or to the console.
+
+The harvey_run_test and harvey_select_test commands both take default arguments that define how to run and output the test. Each of the arguments can be overridden by adding an entry to your default keymap file.
 
 Installation
 ------------
@@ -24,12 +26,17 @@ and clone the repository:
 
 	git clone git@github.com:rayje/harvey-sublime.git Harvey
 
+Usage
+-----
+
+ * To run a test either highlight the Test ID or place the cursor within the Test ID text.
+
 Keyboard mappings
 -----------------
 
 The following are the default key mapping for the commands listed above. The defaults can be overridden by adding an entry to the `Default keymap - User` file.
 
-Mac:
+**Mac:**
  - Run single harvey test (reporter=console, output=console): `Command-Shift-R`
  - Run single harvey test (reporter=json, output=scratch): `Command-Shift-O`
  - Run all tests in harvey test file (reporter=console, output=scratch): `Command-Shift-A`
@@ -37,7 +44,7 @@ Mac:
  - Select a test to run from quick panel (reporter=console, output=console): `Command-Shift-U`
  - Run the last test: `Command+Shift+L`
 
-Linux/Windows:
+**Linux/Windows:**
  - Run single harvey test (reporter=console, output=console): `Control-Shift-R`
  - Run single harvey test (reporter=json, output=scratch): `Control-Shift-O`
  - Run all tests in harvey test file (reporter=console, output=scratch): `Control-Shift-A`
@@ -52,37 +59,41 @@ To override the default keybindings your User Keybinding File and add the follow
 **To override the harvey_run_test command**
 
 ```json
-	[
-	    {
-			"keys": ["ctrl+shift+r"],
-			"command": "harvey_run_test",
-			"args": {
-				// Run all tests in a test file
-				"all": false,
-				// Reporter to be used in the Harvey command
-				"reporter": "console",
-				// Output to a scratch file, False outputs to console
-				"scratch": false
-			}
+[
+    {
+		"keys": ["ctrl+shift+r"],
+		"command": "harvey_run_test",
+		"args": {
+			// To run all tests in a test file, set this value to true
+			"all": false,
+			// Reporter to be used in the Harvey command
+			// Valid reporters: console, json
+			"reporter": "console",
+			// To output to a scratch file, set this value to true
+			// false will output to console
+			"scratch": false
 		}
-	]
+	}
+]
 ```
 
 **To override the harvey_select_test command**
 
 ```json
-	[
-	    {
-			"keys": ["super+shift+u"],
-			"command": "harvey_select_test",
-			"args": {
-				// Reporter to be used in the Harvey command
-				"reporter": "console",
-				// Output to a scratch file, False outputs to console
-				"scratch": false
-			}
+[
+    {
+		"keys": ["super+shift+u"],
+		"command": "harvey_select_test",
+		"args": {
+			// Reporter to be used in the Harvey command
+			// Valid reporters: console, json
+			"reporter": "console",
+			// To output to a scratch file, set this value to true
+			// false will output to console
+			"scratch": false
 		}
-	]
+	}
+]
 ```
 
 Configuring

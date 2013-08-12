@@ -1,6 +1,44 @@
 [
 	{
-		"caption": "Harvey: All Tests",
-		"command": "harvey_all_tests"
+		"caption": "Harvey: All Tests (Console/Console)",
+		"command": "harvey_run_test",
+		"args": {
+			"all": true,
+			"reporter": "console",
+			"scratch": false
+		}
+	},
+
+	{
+		"caption": "Harvey: All Tests (JSON/Scratch)",
+		"command": "harvey_run_test",
+		"args": {
+			"all": true,
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	{
+		"caption": "Harvey: Select Test (JSON/Console)",
+		"command": "harvey_select_test",
+		"args": {
+			"reporter": "json",
+			"scratch": false
+		}
+	},
+
+	{
+		"caption": "Harvey: Select Test (JSON/Scratch)",
+		"command": "harvey_select_test",
+		"args": {
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	{
+		"caption": "Harvey: Run Last Test",
+		"command": "harvey_last_test"
 	}
 ]
