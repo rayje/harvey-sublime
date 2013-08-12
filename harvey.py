@@ -24,13 +24,14 @@ def _make_text_safeish(text, fallback_encoding, method='decode'):
 	return unitext
 
 class HarveyThread(threading.Thread):
-	def __init__(self, command, on_done, working_dir, fallback_encoding="", **kwargs):
+	def __init__(self, command, on_done, working_dir, console=False, fallback_encoding="", **kwargs):
 		threading.Thread.__init__(self)
 		self.command = command
 		self.on_done = on_done
 		self.working_dir = working_dir
 		self.kwargs = kwargs
 		self.fallback_encoding = fallback_encoding
+		self.console = console
 
 	def run(self):
 		try:
@@ -43,12 +44,17 @@ class HarveyThread(threading.Thread):
 				stderr=subprocess.PIPE,
 				shell=True)
 
+			print 'running command'
 			output, error = proc.communicate()
 			return_code = proc.poll()
+			print 'command complete: rc=' + str(return_code)
 
-			output = _make_text_safeish(output, self.fallback_encoding)
-			output = re.sub(r'[\x0e-\x1f\x7f-\xff]', '', output)
-			output = re.sub(r'\[\d+m', '', output)
+			if self.console:
+				print 'fixing'
+				output = _make_text_safeish(output, self.fallback_encoding)
+				output = re.sub(r'[\x0e-\x1f\x7f-\xff]', '', output)
+				output = re.sub(r'\[\d+m', '', output)
+				print 'fixed'
 
 			main_thread(self.on_done, return_code, error, output, **self.kwargs)
 
@@ -146,6 +152,9 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		if window.active_view() and window.active_view().settings().get('fallback_encoding'):
 			fallback_encoding = window.active_view().settings().get('fallback_encoding')
 			kwargs['fallback_encoding'] = fallback_encoding.rpartition('(')[2].rpartition(')')[0]
+
+		if (hasattr(self, 'reporter')):
+			kwargs['console'] = (self.reporter == 'console')
 
 		self.save_test_run(command, self.scratch, working_dir)
 
@@ -256,6 +265,8 @@ class HarveyRunTestCommand(HarveyCommand):
 			return
 
 		self.load_config()
+		self.reporter = reporter
+		self.scratch = scratch
 
 		working_dir = self.get_parent_dir()
 		test_id = None
@@ -268,7 +279,7 @@ class HarveyRunTestCommand(HarveyCommand):
 				sublime.error_message('No tests were selected')
 				return
 
-		if scratch:
+		if self.scratch:
 			callback = self.on_done_scratch
 		else:
 			callback = self.on_done
