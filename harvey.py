@@ -44,17 +44,17 @@ class HarveyThread(threading.Thread):
 				stderr=subprocess.PIPE,
 				shell=True)
 
-			print 'running command'
+			sublime.status_message("Running Harvey Test")
 			output, error = proc.communicate()
 			return_code = proc.poll()
-			print 'command complete: rc=' + str(return_code)
+			sublime.status_message("Harvey Test Complete")
 
 			if self.console:
-				print 'fixing'
+				sublime.status_message("Formatting Harvey Test Results")
 				output = _make_text_safeish(output, self.fallback_encoding)
 				output = re.sub(r'[\x0e-\x1f\x7f-\xff]', '', output)
 				output = re.sub(r'\[\d+m', '', output)
-				print 'fixed'
+				sublime.status_message("Formatting Complete")
 
 			main_thread(self.on_done, return_code, error, output, **self.kwargs)
 
