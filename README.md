@@ -42,19 +42,25 @@ The following are the default key mapping for the commands listed above. The def
 
 **Mac:**
  - Run single harvey test (reporter=console, output=console): `Command-Shift-R`
- - Run single harvey test (reporter=json, output=scratch): `Command-Shift-O`
- - Run all tests in harvey test file (reporter=console, output=scratch): `Command-Shift-A`
+ - Run single harvey test (reporter=json, output=scratch): `Command-Shift-G`
+ - Run all tests in harvey test file (reporter=console, output=console): `Command-Shift-A`
+ - Run all tests in harvey test file (reporter=json, output=scratch): `Command-Shift-O`
  - Select a test to run from quick panel (reporter=json, output=scratch): `Command-Shift-I`
  - Select a test to run from quick panel (reporter=console, output=console): `Command-Shift-U`
  - Run the last test: `Command+Shift+L`
+ - Create a scratch file: `Command+Shift+X`
+ - Show the panel: `Alt+Shift+O`
 
 **Linux/Windows:**
  - Run single harvey test (reporter=console, output=console): `Control-Shift-R`
- - Run single harvey test (reporter=json, output=scratch): `Control-Shift-O`
- - Run all tests in harvey test file (reporter=console, output=scratch): `Control-Shift-A`
+ - Run single harvey test (reporter=json, output=scratch): `Control-Shift-G`
+ - Run all tests in harvey test file (reporter=console, output=console): `Control-Shift-A`
+ - Run all tests in harvey test file (reporter=json, output=scratch): `Control-Shift-O`
  - Select a test to run from quick panel (reporter=json, output=scratch): `Control-Shift-I`
  - Select a test to run from quick panel (reporter=console, output=console): `Control-Shift-U`
  - Run the last test: `Control+Shift+L`
+ - Create a scratch file: `Control+Shift+X`
+ - Show the panel: `Alt+Shift+O`
 
 ### Overriding Default Keybindings
 

@@ -1,5 +1,5 @@
 [
-	// Run single test, output to console
+	// Run a single test, output to console
 	{
 		"keys": ["super+shift+r"],
 		"command": "harvey_run_test",
@@ -10,7 +10,18 @@
 		}
 	},
 
-	// Run single test, output to scratch
+	// Run a single test, output to scratch with JSON
+	{
+		"keys": ["super+shift+g"],
+		"command": "harvey_run_test",
+		"args": {
+			"all": false,
+			"reporter": "json",
+			"scratch": true
+		}
+	},
+
+	// Run all tests, output to scratch with JSON
 	{
 		"keys": ["super+shift+o"],
 		"command": "harvey_run_test",
@@ -21,17 +32,18 @@
 		}
 	},
 
-	// Run single test, output to scratch
+	// Run all tests, output to console
 	{
 		"keys": ["super+shift+a"],
 		"command": "harvey_run_test",
 		"args": {
-			"all": false,
-			"reporter": "json",
-			"scratch": true
+			"all": true,
+			"reporter": "console",
+			"scratch": false
 		}
 	},
 
+	// Select a test from quick panel, output to scratch with JSON
 	{
 		"keys": ["super+shift+i"],
 		"command": "harvey_select_test",
@@ -41,6 +53,7 @@
 		}
 	},
 
+	// Select a test from quick panel, output to console
 	{
 		"keys": ["super+shift+u"],
 		"command": "harvey_select_test",
@@ -50,8 +63,21 @@
 		}
 	},
 
+	// Run the last test
 	{
-		"keys": ["ctrl+shift+l"],
+		"keys": ["super+shift+l"],
 		"command": "harvey_last_test"
+	},
+
+	// Create a scratch file
+	{
+		"keys": ["super+shift+x"],
+		"command": "harvey_new_scratch"
+	},
+
+	// Create a scratch file
+	{
+		"keys": ["alt+shift+o"],
+		"command": "harvey_show_panel"
 	}
 ]

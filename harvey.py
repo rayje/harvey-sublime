@@ -333,3 +333,13 @@ class HarveyLastTestCommand(HarveyCommand):
 			self.reporter = 'console'
 
 		self.run_command(self.command, callback, working_dir)
+
+class HarveyNewScratchCommand(HarveyCommand):
+
+	def run(self, edit):
+		self.show_scratch('', 'SCRATCH')
+
+class HarveyShowPanelCommand(HarveyCommand):
+
+	def run(self, edit):
+		self.get_window().run_command("show_panel", {"panel": "output.harvey"})
