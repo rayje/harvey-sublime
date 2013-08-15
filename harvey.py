@@ -88,6 +88,16 @@ class HarveyCommand(sublime_plugin.TextCommand):
 			Find the parent directory for the Node app
 			that contains the harvey tests
 		"""
+		filename = self.view.file_name()
+		dirname = os.path.dirname(filename);
+
+		index = dirname.find(self.test_dir)
+		root_dir = dirname[:index]
+		print 'rootdir:', root_dir
+
+		if (os.path.exists(root_dir)):
+			return root_dir
+
 		folders = self.view.window().folders()
 		last_folder = ''
 
