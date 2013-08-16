@@ -82,6 +82,7 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		self.syntax = "Packages/Harvey/TestConsole.tmLanguage"
 		self.harvey = settings.get("harvey")
 		self.config = settings.get("config")
+		self.addTestFiles = settings.get('addTestFiles')
 
 	def get_parent_dir(self):
 		"""
@@ -93,11 +94,12 @@ class HarveyCommand(sublime_plugin.TextCommand):
 
 		index = dirname.find(self.test_dir)
 		root_dir = dirname[:index]
-		print 'rootdir:', root_dir
 
 		if (os.path.exists(root_dir)):
+			print 'rootdir:', root_dir
 			return root_dir
 
+		print 'Could not find parent dir, searching view folders'
 		folders = self.view.window().folders()
 		last_folder = ''
 
@@ -128,9 +130,13 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		config = self.config
 		node = self.node
 		test_dir = self.test_dir
+		addTestFiles = self.addTestFiles
 		test = "%s/%s" % (test_dir, filename)
 		command = '%s %s -c %s -r %s -t %s' % \
 				(node, harvey, config, reporter, test)
+
+		if addTestFiles and addTestFiles != '':
+			command = command + ' --addTestFiles ' + addTestFiles
 
 		if test_id:
 			tags = ' --tags "%s"' % test_id
@@ -343,3 +349,89 @@ class HarveyShowPanelCommand(HarveyCommand):
 
 	def run(self, edit):
 		self.get_window().run_command("show_panel", {"panel": "output.harvey"})
+
+class HarveyOpenTestFileCommand(HarveyCommand):
+
+	def panel_done(self, index):
+		if (index < 0):
+			return
+
+		print self.files[index]
+		file_path = os.path.join(self.full_path, self.files[index][0])
+		if not os.path.exists(file_path):
+			print 'File not found:', file_path
+			return
+
+		self.get_window().open_file(file_path)
+
+	def run(self, edit):
+		self.load_config()
+
+		parent_dir = self.get_parent_dir()
+		full_path = os.path.join(parent_dir, self.test_dir)
+		if not os.path.exists(full_path):
+			print 'Could not find path:', full_path
+			return
+
+		self.full_path = full_path
+		for root, dirs, files in os.walk(full_path):
+			self.files = sorted([[f, os.path.join(root, f)] for f in files if f.endswith('json')])
+			self.files.append(['-'*80, '', ''])
+			break
+
+		self.quick_panel(self.files, self.panel_done, sublime.MONOSPACE_FONT)
+
+class HarveyGoToCommand(HarveyCommand):
+
+	def panel_done(self, index):
+		if index < 0:
+			return
+
+		key = self.data.keys()[index]
+		self.selection = self.data[key]
+		if isinstance(self.selection, list):
+			print 'is list: ', str(self.selection)
+		elif self.selection.hasattr('keys'):
+			self.start(self.selection)
+
+	def panel_complete(self, index):
+		if index < 0:
+			return
+
+		selection = self.selection[index]
+		lineno = 0
+		for line in self.lines:
+			if line.contains('"id": ' + selection):
+				# Goto line
+				pt = self.view.text_point(lineno, 0)
+				self.view.sel().clear()
+				self.view.sel().add(sublime.Region(pt))
+				self.view.show(pt)
+
+				break
+
+			lineno += 1
+
+	def complete(self, data):
+		keys = data.keys()
+		self.quick_panel(keys, self.panel_complete, sublime.MONOSPACE_FONT)
+
+	def start(self, data):
+		keys = data.keys()
+		self.quick_panel(keys, self.panel_done, sublime.MONOSPACE_FONT)
+
+	def run(self, edit):
+		self.load_config()
+
+		filename = self.view.file_name()
+		if not os.path.exists(filename):
+			print 'File not found:', filename
+			return
+
+		f = open(filename, 'r')
+		self.lines = f.readlines()
+		f.close()
+
+		content = "".join(self.lines)
+		self.data = json.loads(content)
+		self.start(self.data)

@@ -79,5 +79,17 @@
 	{
 		"keys": ["alt+shift+o"],
 		"command": "harvey_show_panel"
+	},
+
+	// Open a test file
+	{
+		"keys": ["alt+shift+t"],
+		"command": "harvey_open_test_file"
+	},
+
+	// Goto definition
+	{
+		"keys": ["alt+shift+f"],
+		"command": "harvey_go_to"
 	}
 ]
