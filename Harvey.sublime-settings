@@ -3,5 +3,5 @@
 	"harvey-test-dir": "test/integration",
 	"harvey": "node_modules/harvey/bin/harvey",
 	"config": "test/integration/config.json",
-	"addTestFiles": "test/integration/tokens.json"
+	"addTestFiles": ["test/integration/tokens.json"]
 }
