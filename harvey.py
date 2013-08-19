@@ -435,3 +435,70 @@ class HarveyGoToCommand(HarveyCommand):
 		content = "".join(self.lines)
 		self.data = json.loads(content)
 		self.start(self.data)
+
+class HarveyGoToDefinitionCommand(HarveyCommand):
+
+	p = re.compile('\"')
+
+	def find_word_in_quotes(self, line, index):
+		if line[index] == '"':
+			index = index - 1
+
+		m = self.p.search(line[index:])
+		if not m:
+			raise Exception('No quotes found in line')
+
+		rindex = index + m.span()[0]
+		lindex = line[:index].rfind('"')
+
+		if lindex < 0:
+			raise Exception('No quotes found in line')
+
+		return line[lindex+1:rindex]
+
+	def run(self, edit, forward = True, sub_words = False):
+		"""
+			Searches for the definition of the word highlighted
+			within the Harvey test file.
+
+			This command will search for the pattern:
+				"id": "<word>"
+			where <word> is the word either highlighted, or
+			the word near the cursor.
+		"""
+		view = self.view
+		print self.view.sel()
+		# Find the region where the cursor is located
+		region = self.view.sel()[0]
+		# Find the line based on the region
+		line_region = view.line(region)
+		# Find the index of the cursor on the line
+		index = region.b - line_region.a
+		# Get the line as a string
+		line = view.substr(line_region)
+		# Find the word in double quotes
+		try:
+			word = self.find_word_in_quotes(line, index)
+		except Exception, e:
+			print e
+			return
+
+		pattern = '"id": "' + word + '"'
+		r1 = view.find(pattern, 0)
+		if not r1:
+			sublime.error_message("No definition found for: " + word)
+			return
+
+		# Setup Region to be highlighted
+		def_line_region = view.line(r1)
+		def_line = view.substr(def_line_region)
+		lindex = def_line.find(word)
+		select_region_start = def_line_region.a + lindex
+		select_region_end = select_region_start + len(word) 
+		select_region = sublime.Region(select_region_start, select_region_end)
+
+		view.sel().clear()
+		view.sel().add(select_region)
+
+		# Scroll to the line where the definition exists
+		view.show(select_region)
