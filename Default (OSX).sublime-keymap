@@ -79,5 +79,11 @@
 	{
 		"keys": ["alt+shift+o"],
 		"command": "harvey_show_panel"
+	},
+
+	// Goto definition
+	{	
+		"keys": ["f3"], 
+		"command": "harvey_go_to_definition"
 	}
 ]

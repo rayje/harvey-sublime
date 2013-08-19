@@ -87,9 +87,15 @@
 		"command": "harvey_open_test_file"
 	},
 
-	// Goto definition
+	
 	{
 		"keys": ["alt+shift+f"],
 		"command": "harvey_go_to"
+	},
+
+	// Goto definition
+	{	
+		"keys": ["f3"], 
+		"command": "harvey_go_to_definition"
 	}
 ]
