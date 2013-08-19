@@ -71,12 +71,14 @@
 
 	// Create a scratch file
 	{
+		"description": "Show scratch file",
 		"keys": ["ctrl+shift+x"],
 		"command": "harvey_new_scratch"
 	},
 
-	// Create a scratch file
+	// Show panel
 	{
+		"description": "Show panel",
 		"keys": ["alt+shift+o"],
 		"command": "harvey_show_panel"
 	},

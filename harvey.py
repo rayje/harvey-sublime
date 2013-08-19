@@ -135,9 +135,9 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		command = '%s %s -c %s -r %s -t %s' % \
 				(node, harvey, config, reporter, test)
 
-		if addTestFiles and addTestFiles != '':
-			test_files = ",".join(addTestFiles)
-			command = command + ' --addTestFiles ' + test_files
+		if addTestFiles and len(addTestFiles) > 0:
+			testfiles = ",".join(addTestFiles)
+			command = command + ' --addTestFiles ' + testfiles
 
 		if test_id:
 			tags = ' --tags "%s"' % test_id
@@ -432,6 +432,7 @@ class HarveyGoToCommand(HarveyCommand):
 		f = open(filename, 'r')
 		self.lines = f.readlines()
 		f.close()
+		
 
 		content = "".join(self.lines)
 		self.data = json.loads(content)
@@ -504,33 +505,4 @@ class HarveyGoToDefinitionCommand(HarveyCommand):
 		# Scroll to the line where the definition exists
 		view.show(select_region)
 
-# class AutoCompleteCommand(sublime_plugin.EventListener):
 
-#     def on_query_completions(self, view, prefix, locations):
-#     	print 'on_query_completions'
-#         window = sublime.active_window()
-#         views = window.views()
-#         print len(views)
-#         print '-', view.buffer_id()
-#         for v in views:
-#         	print v.buffer_id()
-#         print 'pre:', prefix
-#         print 'sel.a:', view.sel()[0].a
-
-#         # get results from each tab
-#         results = [v.extract_completions(prefix) for v in window.views() if v.buffer_id() != view.buffer_id()]
-#         print results
-#         results = [(item,item) for sublist in results for item in sublist] #flatten
-#         results = list(set(results)) # make unique
-#         results.sort() # sort
-#         return results
-
-	# def on_post_save(self, view):
-	# 	import inspect
-	# 	print 'EventListener'
-	# 	print inspect.getmembers(sublime, predicate=inspect.isfunction)
-
-# class HarveyTest(HarveyCommand):
-# 	def run(self, edit):
-# 		import inspect
-# 		print inspect.getdoc(sublime.View)
