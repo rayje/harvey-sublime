@@ -44,17 +44,17 @@ class HarveyThread(threading.Thread):
 				stderr=subprocess.PIPE,
 				shell=True)
 
-			sublime.status_message("Running Harvey Test")
+			main_thread(sublime.status_message, "Running Harvey Test")
 			output, error = proc.communicate()
 			return_code = proc.poll()
-			sublime.status_message("Harvey Test Complete")
+			main_thread(sublime.status_message, "Harvey Test Complete")
 
 			if self.console:
-				sublime.status_message("Formatting Harvey Test Results")
+				main_thread(sublime.status_message, "Formatting Harvey Test Results")
 				output = _make_text_safeish(output, self.fallback_encoding)
 				output = re.sub(r'[\x0e-\x1f\x7f-\xff]', '', output)
 				output = re.sub(r'\[\d+m', '', output)
-				sublime.status_message("Formatting Complete")
+				main_thread(sublime.status_message, "Formatting Complete")
 
 			main_thread(self.on_done, return_code, error, output, **self.kwargs)
 
@@ -432,11 +432,78 @@ class HarveyGoToCommand(HarveyCommand):
 		f = open(filename, 'r')
 		self.lines = f.readlines()
 		f.close()
-		
+
 
 		content = "".join(self.lines)
 		self.data = json.loads(content)
 		self.start(self.data)
+
+class HarveyGoToTestCommand(HarveyCommand):
+
+	def panel_done(self, index):
+		if index < 0:
+			return
+
+		key = self.data.keys()[index]
+		self.selection = self.data[key]
+		if isinstance(self.selection, list):
+			print 'is list: ', str(self.selection)
+		elif self.selection.hasattr('keys'):
+			self.start(self.selection)
+
+	def panel_complete(self, index):
+		if index < 0:
+			return
+
+		test = self.data["tests"][index]
+		word = test["id"]
+		view = self.view
+
+		pattern = re.escape('"id": "' + word + '"')
+		r1 = view.find(pattern, 0)
+		if not r1:
+			sublime.error_message("No definition found for: " + test["id"])
+			return
+
+		# Setup Region to be highlighted
+		def_line_region = view.line(r1)
+		def_line = view.substr(def_line_region)
+		lindex = def_line.find(word)
+		select_region_start = def_line_region.a + lindex
+		select_region_end = select_region_start + len(word)
+		select_region = sublime.Region(select_region_start, select_region_end)
+
+		view.sel().clear()
+		view.sel().add(select_region)
+
+		# Scroll to the line where the definition exists
+		view.show(select_region)
+
+
+	def complete(self, data):
+		keys = data.keys()
+		self.quick_panel(keys, self.panel_complete, sublime.MONOSPACE_FONT)
+
+	def start(self, data):
+		keys = [test["id"]for test in data['tests']]
+		self.quick_panel(keys, self.panel_complete, sublime.MONOSPACE_FONT)
+
+	def run(self, edit):
+		self.load_config()
+
+		filename = self.view.file_name()
+		if not os.path.exists(filename):
+			print 'File not found:', filename
+			return
+
+		f = open(filename, 'r')
+		self.lines = f.readlines()
+		f.close()
+
+		content = "".join(self.lines)
+		self.data = json.loads(content)
+		self.start(self.data)
+
 
 class HarveyGoToDefinitionCommand(HarveyCommand):
 
@@ -496,7 +563,7 @@ class HarveyGoToDefinitionCommand(HarveyCommand):
 		def_line = view.substr(def_line_region)
 		lindex = def_line.find(word)
 		select_region_start = def_line_region.a + lindex
-		select_region_end = select_region_start + len(word) 
+		select_region_end = select_region_start + len(word)
 		select_region = sublime.Region(select_region_start, select_region_end)
 
 		view.sel().clear()
@@ -506,3 +573,33 @@ class HarveyGoToDefinitionCommand(HarveyCommand):
 		view.show(select_region)
 
 
+# class AutoCompleteCommand(sublime_plugin.EventListener):
+
+#     def on_query_completions(self, view, prefix, locations):
+#     	print 'on_query_completions'
+#         window = sublime.active_window()
+#         views = window.views()
+#         print len(views)
+#         print '-', view.buffer_id()
+#         for v in views:
+#         	print v.buffer_id()
+#         print 'pre:', prefix
+#         print 'sel.a:', view.sel()[0].a
+
+#         # get results from each tab
+#         results = [v.extract_completions(prefix) for v in window.views() if v.buffer_id() != view.buffer_id()]
+#         print results
+#         results = [(item,item) for sublist in results for item in sublist] #flatten
+#         results = list(set(results)) # make unique
+#         results.sort() # sort
+#         return results
+
+	# def on_post_save(self, view):
+	# 	import inspect
+	# 	print 'EventListener'
+	# 	print inspect.getmembers(sublime, predicate=inspect.isfunction)
+
+# class HarveyTest(HarveyCommand):
+# 	def run(self, edit):
+# 		import inspect
+# 		print inspect.getdoc(sublime.View)
