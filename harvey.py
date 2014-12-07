@@ -58,10 +58,10 @@ class HarveyThread(threading.Thread):
 
 			main_thread(self.on_done, return_code, error, output, **self.kwargs)
 
-		except subprocess.CalledProcessError, e:
+		except subprocess.CalledProcessError as e:
 			main_thread(self.on_done, e.returncode, e.output, e.cmd)
 
-		except OSError, e:
+		except OSError as e:
 			if e.errno == 2:
 				error_message = "Node binary could not be found in PATH\n\nPATH is: %s" % os.environ['PATH']
 				main_thread(sublime.error_message, error_message)
@@ -96,10 +96,10 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		root_dir = dirname[:index]
 
 		if (os.path.exists(root_dir)):
-			print 'rootdir:', root_dir
+			print('rootdir:', root_dir)
 			return root_dir
 
-		print 'Could not find parent dir, searching view folders'
+		print('Could not find parent dir, searching view folders')
 		folders = self.view.window().folders()
 		last_folder = ''
 
@@ -205,9 +205,10 @@ class HarveyCommand(sublime_plugin.TextCommand):
 		new_view.set_name(title)
 		new_view.set_syntax_file("Packages/Harvey/Harvey-JSON.tmLanguage")
 		new_view.settings().set("color_scheme", "Packages/Harvey/Harvey-JSON.hidden-tmTheme")
-		edit = new_view.begin_edit()
-		new_view.insert(edit, 0, message)
-		new_view.end_edit(edit)
+		if len(message) > 0:
+			edit = new_view.begin_edit()
+			new_view.insert(edit, 0, message)
+			new_view.end_edit(edit)
 
 		# Goto the first line
 		pt = new_view.text_point(0, 0)
@@ -357,10 +358,10 @@ class HarveyOpenTestFileCommand(HarveyCommand):
 		if (index < 0):
 			return
 
-		print self.files[index]
+		print(self.files[index])
 		file_path = os.path.join(self.full_path, self.files[index][0])
 		if not os.path.exists(file_path):
-			print 'File not found:', file_path
+			print('File not found:', file_path)
 			return
 
 		self.get_window().open_file(file_path)
@@ -371,7 +372,7 @@ class HarveyOpenTestFileCommand(HarveyCommand):
 		parent_dir = self.get_parent_dir()
 		full_path = os.path.join(parent_dir, self.test_dir)
 		if not os.path.exists(full_path):
-			print 'Could not find path:', full_path
+			print('Could not find path:', full_path)
 			return
 
 		self.full_path = full_path
@@ -391,7 +392,7 @@ class HarveyGoToCommand(HarveyCommand):
 		key = self.data.keys()[index]
 		self.selection = self.data[key]
 		if isinstance(self.selection, list):
-			print 'is list: ', str(self.selection)
+			print('is list: ', str(self.selection))
 		elif self.selection.hasattr('keys'):
 			self.start(self.selection)
 
@@ -426,7 +427,7 @@ class HarveyGoToCommand(HarveyCommand):
 
 		filename = self.view.file_name()
 		if not os.path.exists(filename):
-			print 'File not found:', filename
+			print('File not found:', filename)
 			return
 
 		f = open(filename, 'r')
@@ -447,7 +448,7 @@ class HarveyGoToTestCommand(HarveyCommand):
 		key = self.data.keys()[index]
 		self.selection = self.data[key]
 		if isinstance(self.selection, list):
-			print 'is list: ', str(self.selection)
+			print('is list: ', str(self.selection))
 		elif self.selection.hasattr('keys'):
 			self.start(self.selection)
 
@@ -493,7 +494,7 @@ class HarveyGoToTestCommand(HarveyCommand):
 
 		filename = self.view.file_name()
 		if not os.path.exists(filename):
-			print 'File not found:', filename
+			print('File not found:', filename)
 			return
 
 		f = open(filename, 'r')
@@ -536,7 +537,7 @@ class HarveyGoToDefinitionCommand(HarveyCommand):
 			the word near the cursor.
 		"""
 		view = self.view
-		print self.view.sel()
+		print(self.view.sel())
 		# Find the region where the cursor is located
 		region = self.view.sel()[0]
 		# Find the line based on the region
@@ -548,8 +549,8 @@ class HarveyGoToDefinitionCommand(HarveyCommand):
 		# Find the word in double quotes
 		try:
 			word = self.find_word_in_quotes(line, index)
-		except Exception, e:
-			print e
+		except Exception as e:
+			print(e)
 			return
 
 		pattern = '"id": "' + word + '"'
